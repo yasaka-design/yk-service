@@ -33,8 +33,14 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# real business data (spreadsheets etc.) — never commit
+/dat/
+
 # vercel
 .vercel
+
+# Claude Code local session config (may contain tokens/history from local runs)
+/.claude/
 
 # typescript
 *.tsbuildinfo
