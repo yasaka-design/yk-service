@@ -27,3 +27,16 @@ Vercelの画面はよく変わるので、迷ったらここを見る。
 ## 変更後
 
 環境変数を追加・変更したら、Deploymentsタブから最新デプロイの「Redeploy」を実行しないと反映されない。
+
+## 初回公開(2026-08-22)でハマった3つの原因
+
+`https://yk-service.vercel.app`にアクセスしても真っ白/404になる場合、この3つを疑う。
+
+1. **`public`フォルダが空だとビルド自体が失敗する**
+   `No Output Directory named "public" found` というビルドエラーになる。空でもいいので何かファイル(`robots.txt`など)を置いておく。
+
+2. **Settings → Deployment Protection → Vercel Authentication がONだとアプリの前にVercel自身のログイン壁が出る**
+   これが有効だと、うちのアプリの`/login`にすらたどり着けず、`vercel.com/sso-api`にリダイレクトされる。Hobbyプランでは本番だけ除外する機能が無い(Pro限定)ので、基本はOFFにする。アクセス制御はこのアプリ自身(Authenticatorログイン・閲覧リンク)で行っている。
+
+3. **Settings → Build and Deployment → Framework Preset が「Other」になっていると、Next.jsとして正しく動かない**
+   これが一番の原因になりやすい。「Other」だとVercelはただの静的サイト扱いにしてしまい、ページもAPIルートも`proxy.ts`も機能しない。**「Next.js」に変更する**。変更したら必ずRedeployすること(設定を保存しただけでは、今動いているProduction環境には反映されない)。
