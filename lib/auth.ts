@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import * as otplib from 'otplib';
+import { supabase } from './supabase';
 
 export const SESSION_COOKIE = 'yk_session';
 
@@ -93,41 +94,57 @@ export function verifyTotpLogin(email: string, token: string): boolean {
   return result.valid;
 }
 
-// ログイン試行制限(メールアドレスごと、プロセス内メモリで管理)
-// 複数インスタンス/サーバーレスにスケールする場合はこのままでは効かないため、
-// その場合は共有ストア(Redis等)への置き換えが必要
+// ログイン試行制限(メールアドレスごと、Supabaseのlogin_attemptsテーブルで共有管理)
+// Vercelはリクエストごとに別インスタンスで動くサーバーレス構成なので、
+// プロセス内メモリでは複数インスタンス間でカウントが共有されない。DBに持たせて解決する。
 const LOGIN_MAX_ATTEMPTS = 3;
 const LOGIN_LOCKOUT_MS = 15 * 60 * 1000; // 15分
-
-type LoginAttemptState = { failCount: number; lockedUntil: number | null };
-const loginAttempts = new Map<string, LoginAttemptState>();
 
 function loginKey(email: string): string {
   return email.trim().toLowerCase();
 }
 
-export function checkLoginLock(email: string): { locked: boolean; remainingMinutes: number } {
-  const state = loginAttempts.get(loginKey(email));
-  if (state?.lockedUntil && state.lockedUntil > Date.now()) {
-    return { locked: true, remainingMinutes: Math.ceil((state.lockedUntil - Date.now()) / 60000) };
+export async function checkLoginLock(email: string): Promise<{ locked: boolean; remainingMinutes: number }> {
+  const { data } = await supabase
+    .from('login_attempts')
+    .select('locked_until')
+    .eq('email', loginKey(email))
+    .maybeSingle();
+
+  if (data?.locked_until) {
+    const lockedUntil = new Date(data.locked_until).getTime();
+    if (lockedUntil > Date.now()) {
+      return { locked: true, remainingMinutes: Math.ceil((lockedUntil - Date.now()) / 60000) };
+    }
   }
   return { locked: false, remainingMinutes: 0 };
 }
 
-export function recordLoginFailure(email: string): { locked: boolean; remainingAttempts: number } {
+export async function recordLoginFailure(email: string): Promise<{ locked: boolean; remainingAttempts: number }> {
   const key = loginKey(email);
-  const state = loginAttempts.get(key) || { failCount: 0, lockedUntil: null };
-  state.failCount += 1;
+  const { data: existing } = await supabase
+    .from('login_attempts')
+    .select('fail_count')
+    .eq('email', key)
+    .maybeSingle();
 
-  if (state.failCount >= LOGIN_MAX_ATTEMPTS) {
-    loginAttempts.set(key, { failCount: 0, lockedUntil: Date.now() + LOGIN_LOCKOUT_MS });
+  const nextFailCount = (existing?.fail_count || 0) + 1;
+
+  if (nextFailCount >= LOGIN_MAX_ATTEMPTS) {
+    await supabase.from('login_attempts').upsert(
+      { email: key, fail_count: 0, locked_until: new Date(Date.now() + LOGIN_LOCKOUT_MS).toISOString() },
+      { onConflict: 'email' }
+    );
     return { locked: true, remainingAttempts: 0 };
   }
 
-  loginAttempts.set(key, state);
-  return { locked: false, remainingAttempts: LOGIN_MAX_ATTEMPTS - state.failCount };
+  await supabase.from('login_attempts').upsert(
+    { email: key, fail_count: nextFailCount, locked_until: null },
+    { onConflict: 'email' }
+  );
+  return { locked: false, remainingAttempts: LOGIN_MAX_ATTEMPTS - nextFailCount };
 }
 
-export function clearLoginAttempts(email: string): void {
-  loginAttempts.delete(loginKey(email));
+export async function clearLoginAttempts(email: string): Promise<void> {
+  await supabase.from('login_attempts').delete().eq('email', loginKey(email));
 }

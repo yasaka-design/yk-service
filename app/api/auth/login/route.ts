@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'メールアドレスまたはコードが違います' }, { status: 401 });
   }
 
-  const lock = checkLoginLock(email);
+  const lock = await checkLoginLock(email);
   if (lock.locked) {
     return NextResponse.json(
       { error: `試行回数の上限に達しました。${lock.remainingMinutes}分後にもう一度お試しください` },
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   }
 
   if (!verifyTotpLogin(email, code)) {
-    const result = recordLoginFailure(email);
+    const result = await recordLoginFailure(email);
     if (result.locked) {
       return NextResponse.json(
         { error: '試行回数の上限に達しました。15分後にもう一度お試しください' },
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     );
   }
 
-  clearLoginAttempts(email);
+  await clearLoginAttempts(email);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, signSession({ role: 'writer' }), {
