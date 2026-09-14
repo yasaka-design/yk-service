@@ -190,8 +190,6 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<string>(String(currentMonthNum));
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  const elapsedDays = Math.max(today.getDate(), 1);
-
   const getQuarterMonths = (q: string) => {
     switch (q) {
       case 'Q1': return [1, 2, 3];
@@ -203,6 +201,23 @@ export default function Dashboard() {
   };
 
   const quarterMonths = getQuarterMonths(selectedQuarter);
+
+  // 経過日数は「見ている月/四半期」が今日から見て過去・当月・未来のどれかで変わる。
+  // 過去の月(四半期)ならその期間の満日数、当月を含むならそこまでの日数、未来ならまだ0日。
+  // これを間違えると「実績(その月/四半期分の合計)」を実際より少ない日数で割ることになり、
+  // 日平均や着地予測が実態よりずっと大きい/おかしな数字になる。
+  const elapsedDaysForMonth = (monthNum: number) => {
+    if (monthNum < currentMonthNum) return new Date(today.getFullYear(), monthNum, 0).getDate();
+    if (monthNum === currentMonthNum) return today.getDate();
+    return 0;
+  };
+
+  const elapsedDays = Math.max(
+    viewMode === 'all'
+      ? quarterMonths.reduce((sum, m) => sum + elapsedDaysForMonth(m), 0)
+      : elapsedDaysForMonth(Number(viewMode)),
+    1
+  );
 
   const handleQuarterChange = (q: string) => {
     setSelectedQuarter(q);
