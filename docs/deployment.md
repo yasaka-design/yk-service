@@ -1,5 +1,23 @@
 # デプロイ手順(Vercel)
 
+## 運用ルール: pushする前に必ず確認を取る
+
+コード修正の流れはこれに固定する。
+
+1. ローカルで修正する
+2. ローカルで動作確認する(型チェック・ビルド・可能ならローカルサーバーでの実地確認)
+3. 内容を報告し、**ユーザーからOKをもらう**
+4. OKが出てから初めて `git commit` → `git push` する
+
+**修正しただけで勝手にpushしない。** pushする前に一言確認を取ること。
+
+## Git認証まわり
+
+このリポジトリはWindows標準の「Git Credential Manager(GCM)」を無効化し、シンプルなファイル保存方式(`credential.helper=store`)に切り替えてある(`.git/config`にローカル設定済み)。理由: GCMだとpushのたびにアカウント選択のポップアップが出て、確認せずに進められないため。
+
+- GitHubの認証エラー(403など)が出た場合は、`m.yasaka1975@gmail.com`のGitHubアカウントで新しいPersonal Access Tokenを発行し、`git credential approve`で保存し直す(トークンをURLに直接埋め込むとリークするので絶対にしない)
+- **yk-serviceはm.yasaka1975@gmail.comのアカウントで管理する**。別アカウント(roadcar-spec等)がこのリポジトリの共同編集者になっていないか、心当たりがなければ時々確認する
+
 ## Environment Variables の場所
 
 Vercelの画面はよく変わるので、迷ったらここを見る。
