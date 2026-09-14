@@ -491,25 +491,22 @@ export default function Dashboard() {
               入庫台数（車検+点検+一般）の合計進捗は <strong className={isTotalServiceOnPace ? 'text-sky-400' : 'text-rose-400'}>{totalActualService}台 / {totalTargetService}台 ({totalServicePercent}%)</strong> です。
             </span>
           </li>
-          <li className="flex items-start gap-2">
-            <span className={isVolvoNewForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>•</span>
-            <span>
-              現在のペースが続いた場合、<strong className="text-slate-100">ボルボ新車</strong>の着地予測は <strong className={isVolvoNewForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>{volvoNewForecast.toFixed(1)}台（達成率 {volvoNewForecastPercent}%）</strong>（目標 {sales.volvoNew.target}台）です。
-            </span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className={isVolvoArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>•</span>
-            <span>
-              <strong className="text-slate-100">ボルボ粗利</strong>の着地予測は <strong className={isVolvoArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(volvoArariForecast).toLocaleString()}（達成率 {volvoArariForecastPercent}%）</strong>（目標 ¥{service.arari.volvo.target.toLocaleString()}）です。
-            </span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className={isJapanArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>•</span>
-            <span>
-              <strong className="text-slate-100">国産粗利</strong>の着地予測は <strong className={isJapanArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(japanArariForecast).toLocaleString()}（達成率 {japanArariForecastPercent}%）</strong>（目標 ¥{service.arari.japan.target.toLocaleString()}）です。
-            </span>
-          </li>
         </ul>
+
+        <div className="pt-3 mt-1 border-t border-slate-700/50">
+          <p className="text-xs font-bold text-amber-400 mb-2">着地予測</p>
+          <ul className="space-y-1.5 text-sm text-slate-300">
+            <li>
+              ボルボ新車 <strong className={isVolvoNewForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>{volvoNewForecast.toFixed(1)}台（達成率 {volvoNewForecastPercent}%）</strong>（目標 {sales.volvoNew.target}台）
+            </li>
+            <li>
+              ボルボ粗利 <strong className={isVolvoArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(volvoArariForecast).toLocaleString()}（達成率 {volvoArariForecastPercent}%）</strong>（目標 ¥{service.arari.volvo.target.toLocaleString()}）
+            </li>
+            <li>
+              国産粗利 <strong className={isJapanArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(japanArariForecast).toLocaleString()}（達成率 {japanArariForecastPercent}%）</strong>（目標 ¥{service.arari.japan.target.toLocaleString()}）
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );
