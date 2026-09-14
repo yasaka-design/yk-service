@@ -345,14 +345,19 @@ export default function Dashboard() {
   // 着地予測(現在のペースがこのまま続いた場合の月末/期末見込み)
   const forecastValue = (actual: number) => (elapsedDays > 0 ? (actual / elapsedDays) * daysInPeriod : actual);
 
+  const forecastPercent = (forecast: number, target: number) => (target > 0 ? ((forecast / target) * 100).toFixed(1) : '0');
+
   const volvoNewForecast = forecastValue(sales.volvoNew.actual);
   const isVolvoNewForecastOnTrack = volvoNewForecast >= sales.volvoNew.target;
+  const volvoNewForecastPercent = forecastPercent(volvoNewForecast, sales.volvoNew.target);
 
   const volvoArariForecast = forecastValue(service.arari.volvo.actual);
   const isVolvoArariForecastOnTrack = volvoArariForecast >= service.arari.volvo.target;
+  const volvoArariForecastPercent = forecastPercent(volvoArariForecast, service.arari.volvo.target);
 
   const japanArariForecast = forecastValue(service.arari.japan.actual);
   const isJapanArariForecastOnTrack = japanArariForecast >= service.arari.japan.target;
+  const japanArariForecastPercent = forecastPercent(japanArariForecast, service.arari.japan.target);
 
   const viewTitle = viewMode === 'all' ? `${selectedQuarter} (3ヶ月合計)` : `${viewMode}月 (単月)`;
 
@@ -489,19 +494,19 @@ export default function Dashboard() {
           <li className="flex items-start gap-2">
             <span className={isVolvoNewForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>•</span>
             <span>
-              現在のペースが続いた場合、<strong className="text-slate-100">ボルボ新車</strong>の着地予測は <strong className={isVolvoNewForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>{volvoNewForecast.toFixed(1)}台</strong>（目標 {sales.volvoNew.target}台）です。
+              現在のペースが続いた場合、<strong className="text-slate-100">ボルボ新車</strong>の着地予測は <strong className={isVolvoNewForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>{volvoNewForecast.toFixed(1)}台（達成率 {volvoNewForecastPercent}%）</strong>（目標 {sales.volvoNew.target}台）です。
             </span>
           </li>
           <li className="flex items-start gap-2">
             <span className={isVolvoArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>•</span>
             <span>
-              <strong className="text-slate-100">ボルボ粗利</strong>の着地予測は <strong className={isVolvoArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(volvoArariForecast).toLocaleString()}</strong>（目標 ¥{service.arari.volvo.target.toLocaleString()}）です。
+              <strong className="text-slate-100">ボルボ粗利</strong>の着地予測は <strong className={isVolvoArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(volvoArariForecast).toLocaleString()}（達成率 {volvoArariForecastPercent}%）</strong>（目標 ¥{service.arari.volvo.target.toLocaleString()}）です。
             </span>
           </li>
           <li className="flex items-start gap-2">
             <span className={isJapanArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>•</span>
             <span>
-              <strong className="text-slate-100">国産粗利</strong>の着地予測は <strong className={isJapanArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(japanArariForecast).toLocaleString()}</strong>（目標 ¥{service.arari.japan.target.toLocaleString()}）です。
+              <strong className="text-slate-100">国産粗利</strong>の着地予測は <strong className={isJapanArariForecastOnTrack ? 'text-sky-400' : 'text-rose-400'}>¥{Math.round(japanArariForecast).toLocaleString()}（達成率 {japanArariForecastPercent}%）</strong>（目標 ¥{service.arari.japan.target.toLocaleString()}）です。
             </span>
           </li>
         </ul>
